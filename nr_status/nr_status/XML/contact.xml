@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<phone>
+  <user name="贺嵬" mobile="13810199085" email="488474@qq.com">
+    <Monday>1</Monday>
+    <Tuesday>1</Tuesday>
+    <Wednesday>1</Wednesday>
+    <Thursday>1</Thursday>
+    <Friday>0</Friday>
+    <Saturday>0</Saturday>
+    <Sunday>0</Sunday>
+  </user>
+  <user name="贺嵬1" mobile="13681448958" email="robin_he@163.com">
+    <Monday>1</Monday>
+    <Tuesday>1</Tuesday>
+    <Wednesday>0</Wednesday>
+    <Thursday>0</Thursday>
+    <Friday>0</Friday>
+    <Saturday>0</Saturday>
+    <Sunday>0</Sunday>
+  </user>
+</phone>

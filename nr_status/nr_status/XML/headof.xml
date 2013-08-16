@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<headof>
+  <ho name="bjheadof">
+    <ip>148.50.99.1</ip>
+    <oraid>ops$edpman</oraid>
+    <orapass>tu88IIYxbCM=</orapass>
+  </ho>
+  <ho name="bhgheadof">
+    <ip>148.50.241.1</ip>
+    <oraid>ops$edpman</oraid>
+    <orapass>tu88IIYxbCM=</orapass>
+  </ho>
+</headof>
