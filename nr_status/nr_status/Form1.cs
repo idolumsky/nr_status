@@ -364,6 +364,7 @@ namespace nr_status
                 {
                     listView1.Items[ii].SubItems[2].Text = str[1]; //ping
                     listView1.Items[ii].SubItems[3].Text = str[2]; //nr状态
+                    listView1.Items[ii].SubItems[7].Text = str[6]; //nr日期
                     ckUp = false;
                 }
             }
