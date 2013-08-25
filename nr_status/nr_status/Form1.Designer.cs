@@ -29,8 +29,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.ListViewGroup listViewGroup1 = new System.Windows.Forms.ListViewGroup("HeadOf", System.Windows.Forms.HorizontalAlignment.Left);
-            System.Windows.Forms.ListViewGroup listViewGroup2 = new System.Windows.Forms.ListViewGroup("Store", System.Windows.Forms.HorizontalAlignment.Left);
+            System.Windows.Forms.ListViewGroup listViewGroup7 = new System.Windows.Forms.ListViewGroup("HeadOf", System.Windows.Forms.HorizontalAlignment.Left);
+            System.Windows.Forms.ListViewGroup listViewGroup8 = new System.Windows.Forms.ListViewGroup("Store", System.Windows.Forms.HorizontalAlignment.Left);
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.button1 = new System.Windows.Forms.Button();
             this.ovalShape1 = new Microsoft.VisualBasic.PowerPacks.OvalShape();
@@ -74,6 +75,7 @@
             this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader7 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader8 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.backgroundWorker3 = new System.ComponentModel.BackgroundWorker();
             this.groupBox1.SuspendLayout();
             this.nrFinGrp.SuspendLayout();
             this.nrStarGrp.SuspendLayout();
@@ -435,13 +437,13 @@
             this.columnHeader8});
             this.listView1.ForeColor = System.Drawing.SystemColors.WindowText;
             this.listView1.GridLines = true;
-            listViewGroup1.Header = "HeadOf";
-            listViewGroup1.Name = "HeadOf";
-            listViewGroup2.Header = "Store";
-            listViewGroup2.Name = "Store";
+            listViewGroup7.Header = "HeadOf";
+            listViewGroup7.Name = "HeadOf";
+            listViewGroup8.Header = "Store";
+            listViewGroup8.Name = "Store";
             this.listView1.Groups.AddRange(new System.Windows.Forms.ListViewGroup[] {
-            listViewGroup1,
-            listViewGroup2});
+            listViewGroup7,
+            listViewGroup8});
             this.listView1.Location = new System.Drawing.Point(10, 140);
             this.listView1.Name = "listView1";
             this.listView1.Size = new System.Drawing.Size(962, 497);
@@ -490,6 +492,13 @@
             // 
             this.columnHeader8.Text = "NR日";
             // 
+            // backgroundWorker3
+            // 
+            this.backgroundWorker3.WorkerReportsProgress = true;
+            this.backgroundWorker3.WorkerSupportsCancellation = true;
+            this.backgroundWorker3.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker3_DoWork);
+            this.backgroundWorker3.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker3_RunWorkerCompleted);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -512,6 +521,7 @@
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.nrFinGrp);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.Text = "NR_STATUS";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -570,6 +580,7 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.ComboBox starHourBox;
         private System.Windows.Forms.Label label8;
+        private System.ComponentModel.BackgroundWorker backgroundWorker3;
 
     }
 }

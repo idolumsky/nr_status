@@ -55,7 +55,8 @@ namespace nr_status
             nrDate();
             starWarningInit();
             finWarningInit();
-            comboBox1.SelectedIndex = 4; //默认ping延迟             
+            comboBox1.SelectedIndex = 4; //默认ping延迟  
+            this.Text += " "+System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
         }
 
         /// <summary>
@@ -488,21 +489,6 @@ namespace nr_status
      
         }
 
-        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
-        {
-            ListView_Load();
-            //Ping检测超时
-            listViewTimeOut();
-            //nr开始结束时间检查
-            nrTimeStartAndFinish();
-        }
-
-        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            this.backgroundWorker1.CancelAsync();
-            //Msg("bw ok!");
-        }
-
         private void button4_Click(object sender, EventArgs e)
         {
             //Msg(timer1.Enabled.ToString());
@@ -659,7 +645,10 @@ namespace nr_status
             DES des = new DES();
             Msg(des.EncryptDES(textBox2.Text, Properties.Resources.Seckey));
 
+            //Msg(SendMsg("13810199085", "测试消息").ToString());
 
+
+            /*
             if (this.backgroundWorker2.IsBusy)
             {
                 return;
@@ -668,6 +657,7 @@ namespace nr_status
             {
                 this.backgroundWorker2.RunWorkerAsync();
             }
+             */
         }
 
         private void call()
@@ -682,51 +672,33 @@ namespace nr_status
             }            
         }
 
-         /// <summary>
-        /// 发送AT命令
-        /// </summary>
-        /// <param name="ATCom">AT命令</param>
-        /// <returns></returns>
-        private string sendAT(string ATCom)
+        private void SendSuccessMsg()
         {
-            if (!openFlag)
+            if (this.backgroundWorker3.IsBusy)
             {
-                //Msg("未选择端口");
-                return "未选择端口";
+                return;
             }
+            else
+            {
+                this.backgroundWorker3.RunWorkerAsync();
+            }          
+        }
 
-            string str = string.Empty;
-            //忽略接收缓冲区内容，准备发送
-            sPort.DiscardInBuffer();
-            sPort.DiscardOutBuffer();
-            try
-            {                
-                sPort.WriteLine(ATCom + "\r");                
-            }
-            catch (Exception ex)                
-            {                
-                Msg(ex.ToString());
-                throw ex;
-            }
-            Thread.Sleep(2000);
-            try
-            {
-                string temp = string.Empty;
-                while ((temp.Trim() != "OK") && (temp.Trim() != "ERROR") && (temp.Trim() != "BUSY") && (temp.Trim() != "NO CARRIER"))
-                {
-                    sPort.ReadTimeout = -1;
-                    temp = sPort.ReadLine();
-                    str += temp + "|";
-                }
-            }
-            catch (Exception ex)
-            {
-                
-                Msg(ex.ToString());
-                throw ex;
-            }
-            
-            return str;
+        #region 后台事务;
+
+        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        {
+            ListView_Load();
+            //Ping检测超时
+            listViewTimeOut();
+            //nr开始结束时间检查
+            nrTimeStartAndFinish();
+        }
+
+        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            this.backgroundWorker1.CancelAsync();
+            //Msg("bw ok!");
         }
 
         private void backgroundWorker2_DoWork(object sender, DoWorkEventArgs e)
@@ -752,6 +724,33 @@ namespace nr_status
         {
             this.backgroundWorker2.CancelAsync();
         }
+
+        private void backgroundWorker3_DoWork(object sender, DoWorkEventArgs e)
+        {
+            string[,] users = readContact();
+            for (int i = 0; i < users.GetLength(0); i++)
+            {
+                Msg(users[i, 0] + "手机：" + users[i, 1] + "邮箱：" + users[i, 2] + "状态：" + users[i, 3]);
+                if (users[i, 3] == "1")
+                {
+                    Msg("NR正常结束");
+                    Mail("NR 正常结束", users[i, 2], "NR 正常结束" + DateTime.Now.ToString());
+                    Msg(sendAT("ath"));//挂断
+                    Msg("开始发送短信:" + users[i, 1]);
+                    if (SendMsg(users[i, 1], "NR 正常结束" + DateTime.Now.ToString()))
+                        Msg("短信发送成功");
+                    else
+                        Msg("短信发送失败");
+                }
+            }
+        }
+
+        private void backgroundWorker3_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            this.backgroundWorker3.CancelAsync();
+        }
+
+        #endregion
 
         private void clockTimer_Tick(object sender, EventArgs e)
         {
@@ -899,8 +898,19 @@ namespace nr_status
                     Msg("GSM Modem未连接！");
                 }
             }
-                
-                
+
+                        //正常结束发短信
+            if (flag == "star" && !sendWarnFlag)
+            {
+                if (this.backgroundWorker3.IsBusy)
+                {
+                    return;
+                }
+                else
+                {
+                    this.backgroundWorker3.RunWorkerAsync();
+                }   
+            }
         }
 
         /// <summary>
@@ -948,6 +958,154 @@ namespace nr_status
         {
 
         }
+
+
+
+        #region  gsm
+
+        //private bool autoDelMsg = false;//是否自动删除短消息
+        //private string msgCenter = string.Empty;//服务中心号码
+        //private int newMsgIndex;//新消息序号
+
+        /// <summary>
+        /// 发送短信息
+        /// </summary>
+        /// <param name="phone"></param>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public bool SendMsg(string phone, string msg)
+        {
+            string temp = "0011000D91" + this.reverserNumber(phone) + "000801" + this.contentEncoding(msg) + Convert.ToChar(26).ToString();
+            string len = this.getLenght(msg);//计算长度
+
+            try
+            {
+                
+                sPort.Write("AT+CMGS=" + len + "\r");
+                sPort.ReadTo(">");
+                sPort.DiscardInBuffer();
+                //事件重新绑定 正常监视串口数据
+                
+                //temp = this.GsmSendAT(temp);
+                temp = this.sendAT(temp);
+                //Msg(temp);
+                if (temp.Substring(temp.Length - 4, 3).Trim() != "OK")
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            catch { return false; }
+        }
+
+        private string reverserNumber(string phone)
+        {
+            string str = "";
+            //检查手机号码是否按照标准格式写，如果不是则补上
+            if (phone.Substring(0, 2) != "86")
+            {
+                phone = string.Format("86{0}", phone);
+            }
+            char[] c = this.getChar(phone);
+            for (int i = 0; i <= c.Length - 2; i += 2)
+            {
+                str += c[i + 1].ToString() + c[i].ToString();
+            }
+            return str;
+        }
+
+        //汉字解码为16进制
+        private string contentEncoding(string content)
+        {
+            Encoding encodingUTF = System.Text.Encoding.BigEndianUnicode;
+            string s = "";
+            byte[] encodeByte = encodingUTF.GetBytes(content);
+            for (int i = 0; i <= encodeByte.Length - 1; i++)
+            {
+                s += BitConverter.ToString(encodeByte, i, 1);
+            }
+            s = string.Format("{0:X2}{1}", s.Length / 2, s);
+            return s;
+        }
+
+
+        //获取短信内容的字节数
+        private string getLenght(string txt)
+        {
+            int i = 0;
+            string s = "";
+            i = txt.Length * 2;
+            i += 15;
+            s = i.ToString();
+            return s;
+        }
+
+        private char[] getChar(string phone)
+        {
+            if (phone.Length % 2 == 0)
+            {
+                return Convert.ToString(phone).ToCharArray();
+            }
+            else
+            {
+                return Convert.ToString(phone + "F").ToCharArray();
+            }
+        }
+
+
+
+        /// <summary>
+        /// 发送AT命令
+        /// </summary>
+        /// <param name="ATCom">AT命令</param>
+        /// <returns></returns>
+        private string sendAT(string ATCom)
+        {
+            if (!openFlag)
+            {
+                //Msg("未选择端口");
+                return "未选择端口";
+            }
+
+            string str = string.Empty;
+            //忽略接收缓冲区内容，准备发送
+            sPort.DiscardInBuffer();
+            sPort.DiscardOutBuffer();
+            try
+            {
+                sPort.WriteLine(ATCom + "\r");
+            }
+            catch (Exception ex)
+            {
+                Msg(ex.ToString());
+                throw ex;
+            }
+            Thread.Sleep(2000);
+            try
+            {
+                string temp = string.Empty;
+                while ((temp.Trim() != "OK") && (temp.Trim() != "ERROR") && (temp.Trim() != "BUSY") && (temp.Trim() != "NO CARRIER"))
+                {
+                    sPort.ReadTimeout = -1;
+                    temp = sPort.ReadLine();
+                    str += temp + "|";
+                }
+            }
+            catch (Exception ex)
+            {
+
+                Msg(ex.ToString());
+                throw ex;
+            }
+
+            return str;
+        }
+
+        #endregion      
+
 
     }
 }
